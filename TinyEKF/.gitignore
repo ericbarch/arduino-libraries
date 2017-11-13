@@ -1,0 +1,9 @@
+build
+python/*/*.pyc
+python/*/__pycache__
+examples/ekf.csv
+cpp/ekf.csv
+Documentation
+gps_ekf
+*.swp
+*.o
