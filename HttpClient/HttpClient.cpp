@@ -7,16 +7,10 @@
 #ifdef PROXY_ENABLED // currently disabled as introduces dependency on Dns.h in Ethernet
 #include <Dns.h>
 #endif
-#include <string.h>
-#include <ctype.h>
 
 // Initialize constants
-const char* HttpClient::kUserAgent = "Arduino/2.0";
-const char* HttpClient::kGet = "GET";
-const char* HttpClient::kPost = "POST";
-const char* HttpClient::kPut = "PUT";
-const char* HttpClient::kDelete = "DELETE";
-const char* HttpClient::kContentLengthPrefix = "Content-Length: ";
+const char* HttpClient::kUserAgent = "Arduino/2.2.0";
+const char* HttpClient::kContentLengthPrefix = HTTP_HEADER_CONTENT_LENGTH ": ";
 
 #ifdef PROXY_ENABLED // currently disabled as introduces dependency on Dns.h in Ethernet
 HttpClient::HttpClient(Client& aClient, const char* aProxy, uint16_t aProxyPort)
@@ -47,7 +41,8 @@ void HttpClient::resetState()
   iStatusCode = 0;
   iContentLength = 0;
   iBodyLengthConsumed = 0;
-  iContentLengthPtr = 0;
+  iContentLengthPtr = kContentLengthPrefix;
+  iHttpResponseTimeout = kHttpResponseTimeout;
 }
 
 void HttpClient::stop()
@@ -69,6 +64,7 @@ int HttpClient::startRequest(const char* aServerName, uint16_t aServerPort, cons
         return HTTP_ERROR_API;
     }
 
+#ifdef PROXY_ENABLED
     if (iProxyPort)
     {
         if (!iClient->connect(iProxyAddress, iProxyPort) > 0)
@@ -80,6 +76,7 @@ int HttpClient::startRequest(const char* aServerName, uint16_t aServerPort, cons
         }
     }
     else
+#endif
     {
         if (!iClient->connect(aServerName, aServerPort) > 0)
         {
@@ -110,6 +107,7 @@ int HttpClient::startRequest(const IPAddress& aServerAddress, const char* aServe
         return HTTP_ERROR_API;
     }
 
+#ifdef PROXY_ENABLED
     if (iProxyPort)
     {
         if (!iClient->connect(iProxyAddress, iProxyPort) > 0)
@@ -121,6 +119,7 @@ int HttpClient::startRequest(const IPAddress& aServerAddress, const char* aServe
         }
     }
     else
+#endif
     {
         if (!iClient->connect(aServerAddress, aServerPort) > 0)
         {
@@ -151,6 +150,7 @@ int HttpClient::sendInitialHeaders(const char* aServerName, IPAddress aServerIP,
     // Send the HTTP command, i.e. "GET /somepath/ HTTP/1.0"
     iClient->print(aHttpMethod);
     iClient->print(" ");
+#ifdef PROXY_ENABLED
     if (iProxyPort)
     {
       // We're going through a proxy, send a full URL
@@ -171,6 +171,7 @@ int HttpClient::sendInitialHeaders(const char* aServerName, IPAddress aServerIP,
         iClient->print(aPort);
       }
     }
+#endif
     iClient->print(aURLPath);
     iClient->println(" HTTP/1.1");
     // The host header, if required
@@ -186,15 +187,17 @@ int HttpClient::sendInitialHeaders(const char* aServerName, IPAddress aServerIP,
         iClient->println();
     }
     // And user-agent string
-    iClient->print("User-Agent: ");
     if (aUserAgent)
     {
-        iClient->println(aUserAgent);
+        sendHeader(HTTP_HEADER_USER_AGENT, aUserAgent);
     }
     else
     {
-        iClient->println(kUserAgent);
+        sendHeader(HTTP_HEADER_USER_AGENT, kUserAgent);
     }
+    // We don't support persistent connections, so tell the server to
+    // close this connection after we're done
+    sendHeader(HTTP_HEADER_CONNECTION, "close");
 
     // Everything has gone well
     iState = eRequestStarted;
@@ -311,7 +314,7 @@ int HttpClient::responseStatusCode()
         const char* statusPtr = statusPrefix;
         // Whilst we haven't timed out & haven't reached the end of the headers
         while ((c != '\n') && 
-               ( (millis() - timeoutStart) < kHttpResponseTimeout ))
+               ( (millis() - timeoutStart) < iHttpResponseTimeout ))
         {
             if (available())
             {
@@ -401,7 +404,7 @@ int HttpClient::skipResponseHeaders()
     unsigned long timeoutStart = millis();
     // Whilst we haven't timed out & haven't reached the end of the headers
     while ((!endOfHeadersReached()) && 
-           ( (millis() - timeoutStart) < kHttpResponseTimeout ))
+           ( (millis() - timeoutStart) < iHttpResponseTimeout ))
     {
         if (available())
         {

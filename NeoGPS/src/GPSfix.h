@@ -1,23 +1,22 @@
 #ifndef GPSFIX_H
 #define GPSFIX_H
 
-/**
- * @file GPSfix.h
- * @version 3.0
- *
- * @section License
- * Copyright (C) 2016, SlashDevin
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- */
+//  Copyright (C) 2014-2017, SlashDevin
+//
+//  This file is part of NeoGPS
+//
+//  NeoGPS is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  NeoGPS is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with NeoGPS.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "NeoGPS_cfg.h"
 #include "GPSfix_cfg.h"
@@ -128,6 +127,12 @@ public:
     float   altitude_ft() const { return altitude() * 3.28084; };
   #endif
 
+  #ifdef GPS_FIX_VELNED
+    int32_t  velocity_north;    // cm/s
+    int32_t  velocity_east;     // cm/s
+    int32_t  velocity_down;     // cm/s
+  #endif
+
   #ifdef GPS_FIX_SPEED
     whole_frac    spd; // .001 nautical miles per hour
 
@@ -165,10 +170,10 @@ public:
     uint16_t           hdop; // Horizontal Dilution of Precision x 1000
   #endif
   #ifdef GPS_FIX_VDOP
-    uint16_t           vdop; // Horizontal Dilution of Precision x 1000
+    uint16_t           vdop; // Vertical Dilution of Precision x 1000
   #endif
   #ifdef GPS_FIX_PDOP
-    uint16_t           pdop; // Horizontal Dilution of Precision x 1000
+    uint16_t           pdop; // Position Dilution of Precision x 1000
   #endif
 
   //--------------------------------------------------------
@@ -233,7 +238,10 @@ public:
     STATUS_EST,
     STATUS_TIME_ONLY,
     STATUS_STD,
-    STATUS_DGPS
+    STATUS_DGPS,
+    STATUS_RTK_FLOAT,
+    STATUS_RTK_FIXED,
+    STATUS_PPS // Precise Position System, *NOT* Pulse-per-second
   };
 
   status_t  status NEOGPS_BF(8);
@@ -267,6 +275,10 @@ public:
 
     #ifdef GPS_FIX_SPEED
       bool speed NEOGPS_BF(1);
+    #endif
+
+    #ifdef GPS_FIX_VELNED
+      bool velned NEOGPS_BF(1);
     #endif
 
     #ifdef GPS_FIX_HEADING
@@ -342,6 +354,12 @@ public:
 
     #ifdef GPS_FIX_SPEED
       spd.init();
+    #endif
+
+    #ifdef GPS_FIX_VELNED
+      velocity_north =
+      velocity_east  =
+      velocity_down  = 0;
     #endif
 
     #ifdef GPS_FIX_HEADING
@@ -445,6 +463,14 @@ public:
     #ifdef GPS_FIX_SPEED
       if (r.valid.speed)
         spd = r.spd;
+    #endif
+
+    #ifdef GPS_FIX_VELNED
+      if (r.valid.velned) {
+        velocity_north = r.velocity_north;
+        velocity_east  = r.velocity_east;
+        velocity_down  = r.velocity_down;
+      }
     #endif
 
     #ifdef GPS_FIX_SATELLITES

@@ -1,41 +1,44 @@
 // MultiStepper.pde
 // -*- mode: C++ -*-
-//
-// Shows how to multiple simultaneous steppers
-// Runs one stepper forwards and backwards, accelerating and decelerating
-// at the limits. Runs other steppers at the same time
-//
-// Copyright (C) 2009 Mike McCauley
-// $Id: MultiStepper.pde,v 1.1 2011/01/05 01:51:01 mikem Exp mikem $
+// Use MultiStepper class to manage multiple steppers and make them all move to 
+// the same position at the same time for linear 2d (or 3d) motion.
 
 #include <AccelStepper.h>
+#include <MultiStepper.h>
 
-// Define some steppers and the pins the will use
-AccelStepper stepper1; // Defaults to AccelStepper::FULL4WIRE (4 pins) on 2, 3, 4, 5
-AccelStepper stepper2(AccelStepper::FULL4WIRE, 6, 7, 8, 9);
-AccelStepper stepper3(AccelStepper::FULL2WIRE, 10, 11);
+// EG X-Y position bed driven by 2 steppers
+// Alas its not possible to build an array of these with different pins for each :-(
+AccelStepper stepper1(AccelStepper::FULL4WIRE, 2, 3, 4, 5);
+AccelStepper stepper2(AccelStepper::FULL4WIRE, 8, 9, 10, 11);
 
-void setup()
-{  
-    stepper1.setMaxSpeed(200.0);
-    stepper1.setAcceleration(100.0);
-    stepper1.moveTo(24);
-    
-    stepper2.setMaxSpeed(300.0);
-    stepper2.setAcceleration(100.0);
-    stepper2.moveTo(1000000);
-    
-    stepper3.setMaxSpeed(300.0);
-    stepper3.setAcceleration(100.0);
-    stepper3.moveTo(1000000); 
+// Up to 10 steppers can be handled as a group by MultiStepper
+MultiStepper steppers;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Configure each stepper
+  stepper1.setMaxSpeed(100);
+  stepper2.setMaxSpeed(100);
+
+  // Then give them to MultiStepper to manage
+  steppers.addStepper(stepper1);
+  steppers.addStepper(stepper2);
 }
 
-void loop()
-{
-    // Change direction at the limits
-    if (stepper1.distanceToGo() == 0)
-	stepper1.moveTo(-stepper1.currentPosition());
-    stepper1.run();
-    stepper2.run();
-    stepper3.run();
+void loop() {
+  long positions[2]; // Array of desired stepper positions
+  
+  positions[0] = 1000;
+  positions[1] = 50;
+  steppers.moveTo(positions);
+  steppers.runSpeedToPosition(); // Blocks until all are in position
+  delay(1000);
+  
+  // Move to a different coordinate
+  positions[0] = -100;
+  positions[1] = 100;
+  steppers.moveTo(positions);
+  steppers.runSpeedToPosition(); // Blocks until all are in position
+  delay(1000);
 }

@@ -106,18 +106,6 @@ void spiSend(uint8_t data) {
   sei();
 }
 #endif  // SOFTWARE_SPI
-
-void spiRec(uint8_t* data, int size) {
-#ifdef USE_SPI_LIB
-  SDCARD_SPI.transfer(data, size);
-#else
-  while (size) {
-    *data++ = spiRec();
-    size--;
-  }
-#endif
-}
-
 //------------------------------------------------------------------------------
 // send command and return error code.  Return zero for OK
 uint8_t Sd2Card::cardCommand(uint8_t cmd, uint32_t arg) {
@@ -260,7 +248,7 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
   errorCode_ = inBlock_ = partialBlockRead_ = type_ = 0;
   chipSelectPin_ = chipSelectPin;
   // 16-bit init start time allows over a minute
-  uint16_t t0 = (uint16_t)millis();
+  unsigned int t0 = millis();
   uint32_t arg;
 
   // set pin modes
@@ -300,7 +288,8 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
 
   // command to go idle in SPI mode
   while ((status_ = cardCommand(CMD0, 0)) != R1_IDLE_STATE) {
-    if (((uint16_t)(millis() - t0)) > SD_INIT_TIMEOUT) {
+    unsigned int d = millis() - t0;
+    if (d > SD_INIT_TIMEOUT) {
       error(SD_CARD_ERROR_CMD0);
       goto fail;
     }
@@ -322,7 +311,8 @@ uint8_t Sd2Card::init(uint8_t sckRateID, uint8_t chipSelectPin) {
 
   while ((status_ = cardAcmd(ACMD41, arg)) != R1_READY_STATE) {
     // check for timeout
-    if (((uint16_t)(millis() - t0)) > SD_INIT_TIMEOUT) {
+    unsigned int d = millis() - t0;
+    if (d > SD_INIT_TIMEOUT) {
       error(SD_CARD_ERROR_ACMD41);
       goto fail;
     }
@@ -442,7 +432,9 @@ uint8_t Sd2Card::readData(uint32_t block,
     spiRec();
   }
   // transfer data
-  spiRec(dst, count);
+  for (uint16_t i = 0; i < count; i++) {
+    dst[i] = spiRec();
+  }
 #endif  // OPTIMIZE_HARDWARE_SPI
 
   offset_ += count;
@@ -489,7 +481,7 @@ uint8_t Sd2Card::readRegister(uint8_t cmd, void* buf) {
   }
   if (!waitStartBlock()) goto fail;
   // transfer data
-  spiRec(dst, 16);
+  for (uint16_t i = 0; i < 16; i++) dst[i] = spiRec();
   spiRec();  // get first crc byte
   spiRec();  // get second crc byte
   chipSelectHigh();
@@ -551,20 +543,23 @@ uint8_t Sd2Card::setSpiClock(uint32_t clock)
 #endif
 //------------------------------------------------------------------------------
 // wait for card to go not busy
-uint8_t Sd2Card::waitNotBusy(uint16_t timeoutMillis) {
-  uint16_t t0 = millis();
+uint8_t Sd2Card::waitNotBusy(unsigned int timeoutMillis) {
+  unsigned int t0 = millis();
+  unsigned int d;
   do {
     if (spiRec() == 0XFF) return true;
+    d = millis() - t0;
   }
-  while (((uint16_t)millis() - t0) < timeoutMillis);
+  while (d < timeoutMillis);
   return false;
 }
 //------------------------------------------------------------------------------
 /** Wait for start block token */
 uint8_t Sd2Card::waitStartBlock(void) {
-  uint16_t t0 = millis();
+  unsigned int t0 = millis();
   while ((status_ = spiRec()) == 0XFF) {
-    if (((uint16_t)millis() - t0) > SD_READ_TIMEOUT) {
+    unsigned int d = millis() - t0;
+    if (d > SD_READ_TIMEOUT) {
       error(SD_CARD_ERROR_READ_TIMEOUT);
       goto fail;
     }
