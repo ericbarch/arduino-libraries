@@ -36,13 +36,13 @@
 /**
  * A structure for holding a GPS fix: time, position, velocity, etc.
  *
- * Because GPS devices report various subsets of a coherent fix, 
- * this class tracks which members of the fix are being reported: 
- * each part has its own validity flag. Also, operator |= implements 
+ * Because GPS devices report various subsets of a coherent fix,
+ * this class tracks which members of the fix are being reported:
+ * each part has its own validity flag. Also, operator |= implements
  * merging multiple reports into one consolidated report.
  *
  * @section Limitations
- * Reports are not really fused with an algorithm; if present in 
+ * Reports are not really fused with an algorithm; if present in
  * the source, they are simply replaced in the destination.
  *
  */
@@ -55,7 +55,7 @@ public:
   gps_fix() { init(); };
 
   //------------------------------------------------------------------
-  // 'whole_frac' is a utility structure that holds the two parts 
+  // 'whole_frac' is a utility structure that holds the two parts
   //    of a floating-point number.
   //
   // This is used for Altitude, Heading and Speed, which require more
@@ -70,7 +70,7 @@ public:
   //   the whole part was stored as integer meters, and the fractional part
   //   was stored as integer centimeters.
   //
-  // Unless you want the speed and precision of the two integer parts, you 
+  // Unless you want the speed and precision of the two integer parts, you
   //   shouldn't have to use 'whole_frac'.  Instead, use the
   //   accessor functions for each of the specific fields for
   //   Altitude, Heading and Speed.
@@ -116,9 +116,9 @@ public:
 
   #ifdef GPS_FIX_LOCATION_DMS
     DMS_t latitudeDMS;
-    DMS_t longitudeDMS;    
+    DMS_t longitudeDMS;
   #endif
-  
+
   #ifdef GPS_FIX_ALTITUDE
     whole_frac    alt; // .01 meters
 
@@ -131,6 +131,21 @@ public:
     int32_t  velocity_north;    // cm/s
     int32_t  velocity_east;     // cm/s
     int32_t  velocity_down;     // cm/s
+
+    void calculateNorthAndEastVelocityFromSpeedAndHeading()
+    {
+      #if defined( GPS_FIX_HEADING ) && defined( GPS_FIX_SPEED )
+        if (valid.heading && valid.speed && valid.velned) {
+
+          float course         = heading() * NeoGPS::Location_t::RAD_PER_DEG;
+          float speed_cm_per_s = speed_metersph() * (100.0 / 3600.0);
+          velocity_north = round( speed_cm_per_s * cos( course ) );
+          velocity_east  = round( speed_cm_per_s * sin( course ) );
+          // velocity_down has already been set.
+
+        }
+      #endif
+    }
   #endif
 
   #ifdef GPS_FIX_SPEED
@@ -143,7 +158,7 @@ public:
     CONST_CLASS_DATA float KM_PER_NMI = 1.852;
     float    speed_kph () const { return speed() * KM_PER_NMI; };
 
-    CONST_CLASS_DATA uint16_t M_PER_NMI = 1852;
+    CONST_CLASS_DATA uint32_t M_PER_NMI = 1852;
     uint32_t speed_metersph() const { return (spd.whole * M_PER_NMI) + (spd.frac * M_PER_NMI)/1000; };
 
     CONST_CLASS_DATA float MI_PER_NMI = 1.150779;
@@ -159,11 +174,11 @@ public:
 
   //--------------------------------------------------------
   // Dilution of Precision is a measure of the current satellite
-  // constellation geometry WRT how 'good' it is for determining a 
-  // position.  This is _independent_ of signal strength and many 
+  // constellation geometry WRT how 'good' it is for determining a
+  // position.  This is _independent_ of signal strength and many
   // other factors that may be internal to the receiver.
   // It _cannot_ be used to determine position accuracy in meters.
-  // Instead, use the LAT/LON/ALT error in cm members, which are 
+  // Instead, use the LAT/LON/ALT error in cm members, which are
   //   populated by GST sentences.
 
   #ifdef GPS_FIX_HDOP
@@ -225,14 +240,14 @@ public:
   //--------------------------------------------------------
   // The current fix status or mode of the GPS device.
   //
-  // Unfortunately, the NMEA sentences are a little inconsistent 
-  //   in their use of "status" and "mode". Both fields are mapped 
-  //   onto this enumerated type.  Be aware that different 
-  //   manufacturers interpret them differently.  This can cause 
+  // Unfortunately, the NMEA sentences are a little inconsistent
+  //   in their use of "status" and "mode". Both fields are mapped
+  //   onto this enumerated type.  Be aware that different
+  //   manufacturers interpret them differently.  This can cause
   //   problems in sentences which include both types (e.g., GPGLL).
   //
   // Note: Sorted by increasing accuracy.  See also /operator |=/.
-   
+
   enum status_t {
     STATUS_NONE,
     STATUS_EST,
@@ -404,11 +419,11 @@ public:
     status = STATUS_NONE;
 
     valid.init();
-  
+
   } // init
 
   //-------------------------------------------------------------
-  // Merge valid fields from the right fix into a "fused" fix 
+  // Merge valid fields from the right fix into a "fused" fix
   //   on the left (i.e., /this/).
   //
   // Usage:  gps_fix left, right;
