@@ -27,13 +27,23 @@
 #include "GPSTime.h"
 #include "ublox/ubx_cfg.h"
 
-#include <Stream.h>
-#include <stddef.h>
+#if !defined(UBLOX_PARSE_STATUS)  & !defined(UBLOX_PARSE_TIMEGPS) & \
+    !defined(UBLOX_PARSE_TIMEUTC) & !defined(UBLOX_PARSE_POSLLH)  & \
+    !defined(UBLOX_PARSE_DOP)     & !defined(UBLOX_PARSE_PVT)     & \
+    !defined(UBLOX_PARSE_VELNED)  & !defined(UBLOX_PARSE_SVINFO)  & \
+    !defined(UBLOX_PARSE_HNR_PVT)
 
-// NOTE: millis() is used for ACK timing
+  #warning No UBX binary messages enabled: ubloxGPS class not defined.
+
+#else
+
+  #include <Stream.h>
+  #include <stddef.h>
+
+  // NOTE: millis() is used for ACK timing
 
 
-class ubloxGPS : public ubloxNMEA
+class ubloxGPS : public UBLOXGPS_BASE
 {
     ubloxGPS & operator =( const ubloxGPS & );
     ubloxGPS( const ubloxGPS & );
@@ -53,7 +63,7 @@ public:
 
     // ublox binary UBX message type.
     enum ubx_msg_t {
-        UBX_MSG = PUBX_LAST_MSG+1
+        UBX_MSG = UBLOXGPS_BASE_LAST_MSG+1
     };
     static const nmea_msg_t UBX_FIRST_MSG = (nmea_msg_t) UBX_MSG;
     static const nmea_msg_t UBX_LAST_MSG  = (nmea_msg_t) UBX_MSG;
@@ -233,7 +243,8 @@ protected:
                 (m_rx_msg.msg_class == UBX_LAST_MSG_CLASS_IN_INTERVAL) &&
                 (m_rx_msg.msg_id    == UBX_LAST_MSG_ID_IN_INTERVAL))
                         ||
-               NMEAGPS::intervalCompleted();
+               ((nmeaMessage        != (nmea_msg_t) UBX_MSG) &&
+                NMEAGPS::intervalCompleted());
       }
 
 private:
@@ -289,6 +300,7 @@ private:
     bool parseNavStatus ( uint8_t chr );
     bool parseNavDOP    ( uint8_t chr );
     bool parseNavPosLLH ( uint8_t chr );
+    bool parseNavPvt    ( uint8_t chr );
     bool parseNavVelNED ( uint8_t chr );
     bool parseNavTimeGPS( uint8_t chr );
     bool parseNavTimeUTC( uint8_t chr );
@@ -327,6 +339,8 @@ private:
     }
 
 } NEOGPS_PACKED;
+
+#endif // UBX messages enabled
 
 #endif // NMEAGPS_DERIVED_TYPES enabled
 

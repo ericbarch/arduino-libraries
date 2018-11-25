@@ -2,8 +2,9 @@
 # Copyright Benoit Blanchon 2014-2018
 # MIT License
 
-add_executable(IntegrationTests 
+add_executable(IntegrationTests
 	gbathree.cpp
+	issue772.cpp
 	round_trip.cpp
 )
 

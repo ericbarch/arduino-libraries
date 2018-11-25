@@ -4,6 +4,18 @@
 
 #pragma once
 
+#if defined(_MSC_VER)
+#define ARDUINOJSON_HAS_INT64 1
+#else
+#define ARDUINOJSON_HAS_INT64 0
+#endif
+
+#if __cplusplus >= 201103L
+#define ARDUINOJSON_HAS_LONG_LONG 1
+#else
+#define ARDUINOJSON_HAS_LONG_LONG 0
+#endif
+
 // Small or big machine?
 #ifndef ARDUINOJSON_EMBEDDED_MODE
 #if defined(ARDUINO) || defined(__IAR_SYSTEMS_ICC__) || defined(__XC) || \
@@ -25,9 +37,6 @@
 #ifndef ARDUINOJSON_USE_LONG_LONG
 #define ARDUINOJSON_USE_LONG_LONG 0
 #endif
-#ifndef ARDUINOJSON_USE_INT64
-#define ARDUINOJSON_USE_INT64 0
-#endif
 
 // Embedded systems usually don't have std::string
 #ifndef ARDUINOJSON_ENABLE_STD_STRING
@@ -44,6 +53,11 @@
 #define ARDUINOJSON_DEFAULT_NESTING_LIMIT 10
 #endif
 
+// Default capacity for DynamicJsonDocument
+#ifndef ARDUINOJSON_DEFAULT_POOL_SIZE
+#define ARDUINOJSON_DEFAULT_POOL_SIZE 1024
+#endif
+
 #else  // ARDUINOJSON_EMBEDDED_MODE
 
 // On a computer we have plenty of memory so we can use doubles
@@ -53,19 +67,10 @@
 
 // Use long long when available
 #ifndef ARDUINOJSON_USE_LONG_LONG
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1800)
+#if ARDUINOJSON_HAS_LONG_LONG || ARDUINOJSON_HAS_INT64
 #define ARDUINOJSON_USE_LONG_LONG 1
 #else
 #define ARDUINOJSON_USE_LONG_LONG 0
-#endif
-#endif
-
-// Use _int64 on old versions of Visual Studio
-#ifndef ARDUINOJSON_USE_INT64
-#if defined(_MSC_VER) && _MSC_VER <= 1700
-#define ARDUINOJSON_USE_INT64 1
-#else
-#define ARDUINOJSON_USE_INT64 0
 #endif
 #endif
 
@@ -82,6 +87,11 @@
 // On a computer, the stack is large so we can increase nesting limit
 #ifndef ARDUINOJSON_DEFAULT_NESTING_LIMIT
 #define ARDUINOJSON_DEFAULT_NESTING_LIMIT 50
+#endif
+
+// Default capacity for DynamicJsonDocument
+#ifndef ARDUINOJSON_DEFAULT_POOL_SIZE
+#define ARDUINOJSON_DEFAULT_POOL_SIZE 16384
 #endif
 
 #endif  // ARDUINOJSON_EMBEDDED_MODE
@@ -120,21 +130,6 @@
 #endif
 #endif
 
-#ifndef ARDUINOJSON_ENABLE_ALIGNMENT
-#ifdef ARDUINO_ARCH_AVR
-// alignment isn't needed for 8-bit AVR
-#define ARDUINOJSON_ENABLE_ALIGNMENT 0
-#else
-// but most processors need pointers to be align on word size
-#define ARDUINOJSON_ENABLE_ALIGNMENT 1
-#endif
-#endif
-
-// Enable deprecated functions by default
-#ifndef ARDUINOJSON_ENABLE_DEPRECATED
-#define ARDUINOJSON_ENABLE_DEPRECATED 1
-#endif
-
 // Control the exponentiation threshold for big numbers
 // CAUTION: cannot be more that 1e9 !!!!
 #ifndef ARDUINOJSON_POSITIVE_EXPONENTIATION_THRESHOLD
@@ -146,6 +141,12 @@
 #define ARDUINOJSON_NEGATIVE_EXPONENTIATION_THRESHOLD 1e-5
 #endif
 
-#if ARDUINOJSON_USE_LONG_LONG && ARDUINOJSON_USE_INT64
-#error ARDUINOJSON_USE_LONG_LONG and ARDUINOJSON_USE_INT64 cannot be set together
+#ifndef ARDUINOJSON_LITTLE_ENDIAN
+#if defined(_MSC_VER) ||                                                      \
+    (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
+    (defined(__LITTLE_ENDIAN__))
+#define ARDUINOJSON_LITTLE_ENDIAN 1
+#else
+#define ARDUINOJSON_LITTLE_ENDIAN 0
+#endif
 #endif

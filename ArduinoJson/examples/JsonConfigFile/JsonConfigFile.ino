@@ -29,16 +29,18 @@ void loadConfiguration(const char *filename, Config &config) {
   // Open file for reading
   File file = SD.open(filename);
 
-  // Allocate the memory pool on the stack.
-  // Don't forget to change the capacity to match your JSON document.
+  // Allocate the document on the stack.
+  // Don't forget to change the capacity to match your requirements.
   // Use arduinojson.org/assistant to compute the capacity.
-  StaticJsonBuffer<512> jsonBuffer;
+  StaticJsonDocument<512> doc;
 
-  // Parse the root object
-  JsonObject &root = jsonBuffer.parseObject(file);
-
-  if (!root.success())
+  // Deserialize the JSON document
+  DeserializationError error = deserializeJson(doc, file);
+  if (error)
     Serial.println(F("Failed to read file, using default configuration"));
+
+  // Get the root object in the document
+  JsonObject root = doc.as<JsonObject>();
 
   // Copy values from the JsonObject to the Config
   config.port = root["port"] | 2731;
@@ -62,20 +64,20 @@ void saveConfiguration(const char *filename, const Config &config) {
     return;
   }
 
-  // Allocate the memory pool on the stack
-  // Don't forget to change the capacity to match your JSON document.
-  // Use https://arduinojson.org/assistant/ to compute the capacity.
-  StaticJsonBuffer<256> jsonBuffer;
+  // Allocate the document on the stack.
+  // Don't forget to change the capacity to match your requirements.
+  // Use arduinojson.org/assistant to compute the capacity.
+  StaticJsonDocument<256> doc;
 
-  // Parse the root object
-  JsonObject &root = jsonBuffer.createObject();
+  // Make our document contain an object
+  JsonObject root = doc.to<JsonObject>();
 
-  // Set the values
+  // Set the values in the object
   root["hostname"] = config.hostname;
   root["port"] = config.port;
 
   // Serialize JSON to file
-  if (root.printTo(file) == 0) {
+  if (serializeJson(doc, file) == 0) {
     Serial.println(F("Failed to write to file"));
   }
 
@@ -130,15 +132,4 @@ void loop() {
   // not used in this example
 }
 
-// See also
-// --------
-//
-// The website arduinojson.org contains the documentation for all the functions
-// used above. It also includes an FAQ that will help you solve any
-// serialization or deserialization problem.
-// Please check it out at: https://arduinojson.org/
-//
-// The book "Mastering ArduinoJson" contains a case study of a project that has
-// a complex configuration with nested members.
-// Contrary to this example, the project in the book uses the SPIFFS filesystem.
-// Please check it out at: https://arduinojson.org/book/
+// Visit https://arduinojson.org/v6/example/config/ for more.

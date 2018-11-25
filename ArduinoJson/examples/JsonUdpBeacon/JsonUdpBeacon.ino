@@ -43,15 +43,15 @@ void setup() {
 }
 
 void loop() {
-  // Allocate JsonBuffer
+  // Allocate the JSON document
   // Use arduinojson.org/assistant to compute the capacity.
-  StaticJsonBuffer<500> jsonBuffer;
+  StaticJsonDocument<500> doc;
 
-  // Create the root object
-  JsonObject& root = jsonBuffer.createObject();
+  // Make our document represent an object
+  JsonObject root = doc.to<JsonObject>();
 
   // Create the "analog" array
-  JsonArray& analogValues = root.createNestedArray("analog");
+  JsonArray analogValues = root.createNestedArray("analog");
   for (int pin = 0; pin < 6; pin++) {
     // Read the analog input
     int value = analogRead(pin);
@@ -61,7 +61,7 @@ void loop() {
   }
 
   // Create the "digital" array
-  JsonArray& digitalValues = root.createNestedArray("digital");
+  JsonArray digitalValues = root.createNestedArray("digital");
   for (int pin = 0; pin < 14; pin++) {
     // Read the digital input
     int value = digitalRead(pin);
@@ -75,11 +75,11 @@ void loop() {
   Serial.print(remoteIp);
   Serial.print(F(" on port "));
   Serial.println(remotePort);
-  root.printTo(Serial);
+  serializeJson(root, Serial);
 
   // Send UDP packet
   udp.beginPacket(remoteIp, remotePort);
-  root.printTo(udp);
+  serializeJson(root, udp);
   udp.println();
   udp.endPacket();
 
@@ -87,15 +87,4 @@ void loop() {
   delay(10000);
 }
 
-// See also
-// --------
-//
-// The website arduinojson.org contains the documentation for all the functions
-// used above. It also includes an FAQ that will help you solve any
-// serialization problem.
-// Please check it out at: https://arduinojson.org/
-//
-// The book "Mastering ArduinoJson" contains a tutorial on serialization.
-// It begins with a simple example, then adds more features like serializing
-// directly to a file or any stream.
-// Please check it out at: https://arduinojson.org/book/
+// Visit https://arduinojson.org/v6/example/udp-beacon/ for more.

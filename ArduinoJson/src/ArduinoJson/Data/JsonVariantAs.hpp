@@ -4,8 +4,14 @@
 
 #pragma once
 
-namespace ArduinoJson {
-namespace Internals {
+namespace ARDUINOJSON_NAMESPACE {
+
+class JsonArray;
+class JsonArrayConst;
+class JsonObject;
+class JsonObjectConst;
+class JsonVariant;
+class JsonVariantConst;
 
 // A metafunction that returns the type of the value returned by
 // JsonVariant::as<T>()
@@ -19,24 +25,25 @@ struct JsonVariantAs<char*> {
   typedef const char* type;
 };
 
-template <>
-struct JsonVariantAs<JsonArray> {
-  typedef JsonArray& type;
+// A metafunction that returns the type of the value returned by
+// JsonVariant::as<T>()
+template <typename T>
+struct JsonVariantConstAs {
+  typedef typename JsonVariantAs<T>::type type;
 };
 
 template <>
-struct JsonVariantAs<const JsonArray> {
-  typedef const JsonArray& type;
+struct JsonVariantConstAs<JsonVariant> {
+  typedef JsonVariantConst type;
 };
 
 template <>
-struct JsonVariantAs<JsonObject> {
-  typedef JsonObject& type;
+struct JsonVariantConstAs<JsonObject> {
+  typedef JsonObjectConst type;
 };
 
 template <>
-struct JsonVariantAs<const JsonObject> {
-  typedef const JsonObject& type;
+struct JsonVariantConstAs<JsonArray> {
+  typedef JsonArrayConst type;
 };
-}
-}
+}  // namespace ARDUINOJSON_NAMESPACE

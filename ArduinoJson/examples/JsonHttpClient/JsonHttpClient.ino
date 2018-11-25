@@ -70,19 +70,21 @@ void setup() {
     return;
   }
 
-  // Allocate JsonBuffer
+  // Allocate the JSON document
   // Use arduinojson.org/assistant to compute the capacity.
   const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2) + 60;
-  DynamicJsonBuffer jsonBuffer(capacity);
+  DynamicJsonDocument doc(capacity);
 
   // Parse JSON object
-  JsonObject& root = jsonBuffer.parseObject(client);
-  if (!root.success()) {
-    Serial.println(F("Parsing failed!"));
+  DeserializationError error = deserializeJson(doc, client);
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.c_str());
     return;
   }
 
   // Extract values
+  JsonObject root = doc.as<JsonObject>();
   Serial.println(F("Response:"));
   Serial.println(root["sensor"].as<char*>());
   Serial.println(root["time"].as<char*>());
@@ -97,16 +99,4 @@ void loop() {
   // not used in this example
 }
 
-// See also
-// --------
-//
-// The website arduinojson.org contains the documentation for all the functions
-// used above. It also includes an FAQ that will help you solve any
-// serialization  problem.
-// Please check it out at: https://arduinojson.org/
-//
-// The book "Mastering ArduinoJson" contains a tutorial on deserialization
-// showing how to parse the response from Yahoo Weather. In the last chapter,
-// it shows how to parse the huge documents from OpenWeatherMap
-// and Weather Underground.
-// Please check it out at: https://arduinojson.org/book/
+// Visit https://arduinojson.org/v6/example/http-client/ for more.

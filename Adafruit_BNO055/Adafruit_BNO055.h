@@ -44,18 +44,18 @@
 
 typedef struct
 {
-    uint16_t accel_offset_x;
-    uint16_t accel_offset_y;
-    uint16_t accel_offset_z;
-    uint16_t gyro_offset_x;
-    uint16_t gyro_offset_y;
-    uint16_t gyro_offset_z;
-    uint16_t mag_offset_x;
-    uint16_t mag_offset_y;
-    uint16_t mag_offset_z;
+    int16_t accel_offset_x;
+    int16_t accel_offset_y;
+    int16_t accel_offset_z;
+    int16_t mag_offset_x;
+    int16_t mag_offset_y;
+    int16_t mag_offset_z;
+    int16_t gyro_offset_x;
+    int16_t gyro_offset_y;
+    int16_t gyro_offset_z;
 
-    uint16_t accel_radius;
-    uint16_t mag_radius;
+    int16_t accel_radius;
+    int16_t mag_radius;
 } adafruit_bno055_offsets_t;
 
 class Adafruit_BNO055 : public Adafruit_Sensor
@@ -287,6 +287,8 @@ class Adafruit_BNO055 : public Adafruit_Sensor
 #endif
     bool  begin               ( adafruit_bno055_opmode_t mode = OPERATION_MODE_NDOF );
     void  setMode             ( adafruit_bno055_opmode_t mode );
+    void  setAxisRemap        ( adafruit_bno055_axis_remap_config_t remapcode );
+    void  setAxisSign         ( adafruit_bno055_axis_remap_sign_t remapsign );
     void  getRevInfo          ( adafruit_bno055_rev_info_t* );
     void  displayRevInfo      ( void );
     void  setExtCrystalUse    ( boolean usextal );

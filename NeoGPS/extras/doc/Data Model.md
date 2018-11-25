@@ -28,7 +28,7 @@ gps_fix fix;
         * `fix.longitudeDMS.EW()` (char values `E` or `W`)
         * `fix.latitudeDMS.NS()` (char values `N` or `S`)
       * NOTE: An integer degree value (scaled by 10<sup>7</sup> can be used to set the DMS structure by using `fix.latitudeDMS.From( otherLatitude );`
-  * an altitude (above ellipsoid, not Mean Sea Level), accessed with
+  * an altitude (above ellipsoid, aka Mean Sea Level), accessed with
     * `fix.altitude_cm()`, in integer centimeters
     * `fix.altitude()`, in floating-point meters
     * `fix.alt.whole`, in integer meters
@@ -43,11 +43,22 @@ gps_fix fix;
   * a heading, accessed with
     * `fix.heading_cd()`, in integer hundredths of a degree
     * `fix.heading()`, in floating-point degrees
+  * velocity components in the North, East and Down directions, accessed with
+    * `fix.velocity_north`, in integer cm/s
+    * `fix.velocity_east`, in integer cm/s
+    * `fix.velocity_down`, in integer cm/s
   * `fix.hdop`, `fix.vdop` and `fix.pdop`, in integer thousandths of the DOP.
     * [Dilution of Precision](https://en.wikipedia.org/wiki/Dilution_of_precision_(navigation)) is a unitless measure of the current satellite constellation geometry WRT how 'good' it is for determining a position.  This is _independent_ of signal strength and many other factors that may be internal to the receiver. &nbsp;&nbsp;**It cannot be used to determine position accuracy in meters.**  Instead, use the LAT/LON/ALT error in cm members, which are populated by GST sentences.
   * latitude, longitude and altitude error, accessed with
     * `fix.lat_err_cm`, `fix.lon_err_cm` and `fix.alt_err_cm`, in integer centimeters
     * `fix.lat_err()`, `fix.lon_err()` and `fix.alt_err()`, in floating-point meters
+  * speed, heading and time **errors**, accessed with
+    * `fix.spd_err_mmps`, in integer mm/s
+    * `fix.hdg_errE5`, in integer degrees * 100000
+    * `fix.time_err_ns`, in integer nanoseconds<br>**or with**
+    * `fix.spd_err()` in floating-point m/s
+    * `fix.hdg_err()` in floating-point degrees
+    * `fix.time_err()` in floating-point seconds
   * geoid height above ellipsoid (see [here](https://en.wikipedia.org/wiki/Geoid) for description), accessed with
     * `fix.geoidHeight_cm`, in integer centimeters
     * `fix.geoidHeight()`, in floating-point meters
@@ -103,6 +114,7 @@ There is additional information that is not related to a fix.  Instead, it conta
     * `gps.satellies[i].azimuth`, satellite azimuth in 0-359 integer degrees
     * `gps.satellies[i].snr`, satellite signal-to-noise ratio in 0-99 integer dBHz
     * `gps.satellies[i].tracked`, satellite being tracked flag, a boolean
+  * `gps.sat_count`, the number of elements in the `gps.satellites[]` array
   * `gps.talker_id[]`, talker ID, a two-character array (not NUL-terminated)
   * `gps.mfr_id[]`, manufacturer ID, a three-character array (not NUL-terminated)
   * an internal fix structure,  `gps.fix()`.  Most sketches **should not** use `gps.fix()` directly!

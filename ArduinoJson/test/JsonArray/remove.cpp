@@ -6,8 +6,8 @@
 #include <catch.hpp>
 
 TEST_CASE("JsonArray::remove()") {
-  DynamicJsonBuffer _jsonBuffer;
-  JsonArray& _array = _jsonBuffer.createArray();
+  DynamicJsonDocument doc;
+  JsonArray _array = doc.to<JsonArray>();
   _array.add(1);
   _array.add(2);
   _array.add(3);

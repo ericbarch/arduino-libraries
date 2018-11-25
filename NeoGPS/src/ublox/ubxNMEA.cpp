@@ -17,8 +17,10 @@
 
 #include "ublox/ubxNMEA.h"
 
-// Disable the entire file if derived types are not allowed.
-#ifdef NMEAGPS_DERIVED_TYPES
+// Disable the entire file if derived types are not allowed,
+//    *or* if no PUBX messages are enabled.
+#if defined( NMEAGPS_DERIVED_TYPES) & \
+    (defined(NMEAGPS_PARSE_PUBX_00) | defined(NMEAGPS_PARSE_PUBX_04))
 
 //---------------------------------------------
 
@@ -80,7 +82,37 @@ bool ubloxNMEA::parsePUBX_00( char chr )
       PARSE_LOC(3);
       case  7: return parseAlt( chr );
       case  8: return parseFix( chr );
-      case 11: return parseSpeed( chr ); // kph!
+      case  9: // use Horizontal accuracy for both lat and lon errors
+        #if defined(GPS_FIX_LAT_ERR)
+          ok = parse_lat_err( chr );
+          #if defined(GPS_FIX_LON_ERR)
+            // When the lat_err field is finished,
+            //   copy it to the lon_err field.
+            if (chr == ',') {
+              m_fix.valid.lon_err = m_fix.valid.lat_err;
+              if (m_fix.valid.lon_err)
+                m_fix.lon_err_cm = m_fix.lat_err_cm;
+            }
+          #endif
+
+        #elif defined(GPS_FIX_LON_ERR)
+          ok = parse_lon_err( chr );
+        #endif
+        break;
+      case 10: return parse_alt_err( chr ); // vertical accuracy
+      case 11:
+        #ifdef GPS_FIX_SPEED
+          ok = parseSpeed( chr ); // PUBX,00 provides speed in km/h!
+
+          if ((chr == ',') && m_fix.valid.speed) {
+            uint32_t kph    = m_fix.spd.int32_000();
+            uint32_t nmiph  = (kph * 1000) / gps_fix::M_PER_NMI;
+            m_fix.spd.whole = nmiph / 1000;
+            m_fix.spd.frac  = (nmiph - m_fix.spd.whole*1000);
+            // Convert to Nautical Miles/Hour
+          }
+        #endif
+        break;
       case 12: return parseHeading( chr );
       case 13: return parseVelocityDown( chr );
       case 15: return parseHDOP( chr );
@@ -153,6 +185,9 @@ bool ubloxNMEA::parseVelocityDown( char chr )
     if (chrCount == 0)
       NMEAGPS_INVALIDATE( velned );
 
+    // Checks for alias size.
+    char test[ (int)sizeof(m_fix.velocity_down) - (int)sizeof(gps_fix::whole_frac) ];
+
     gps_fix::whole_frac *temp = (gps_fix::whole_frac *) &m_fix.velocity_down; // an alias for parsing
 
     if (parseFloat( *temp, chr, 3 )) { // 0.001 m/s
@@ -171,4 +206,4 @@ bool ubloxNMEA::parseVelocityDown( char chr )
 
 } // parseVelocityDown
 
-#endif
+#endif // DERIVED types and at least one PUBX message enabled
