@@ -24,7 +24,7 @@
 #include "utility/Adafruit_CPlay_Speaker.h"
 #include "utility/CP_Firmata.h"
 
-#ifdef __AVR__ // Circuit Playground 'classic'
+#if defined(__AVR__) || defined(ARDUINO_NRF52840_CIRCUITPLAY) // Circuit Playground 'classic'
   #include "utility/CPlay_CapacitiveSensor.h"
 #else
   #include "utility/Adafruit_CPlay_FreeTouch.h"
@@ -49,6 +49,19 @@
  #define CPLAY_LIS3DH_CS         8 ///< LIS3DH chip select pin
  #define CPLAY_LIS3DH_INTERRUPT  7 ///< LIS3DH interrupt pin
  #define CPLAY_LIS3DH_ADDRESS    0x18 ///< LIS3DH I2C address
+#elif defined(ARDUINO_NRF52840_CIRCUITPLAY)
+ #define CPLAY_CAPSENSE_SHARED 255 ///< we use ground instead of capacitive sense pin
+ #define CPLAY_LEFTBUTTON        4 ///< left button pin
+ #define CPLAY_RIGHTBUTTON       5 ///< right button pin
+ #define CPLAY_SLIDESWITCHPIN    7 ///< slide switch pin
+ #define CPLAY_NEOPIXELPIN       8 ///< neopixel pin
+ #define CPLAY_REDLED           13 ///< red led pin
+ #define CPLAY_BUZZER           A0 ///< buzzer pin
+ #define CPLAY_LIGHTSENSOR      A8 ///< light sensor pin
+ #define CPLAY_THERMISTORPIN    A9 ///< thermistor pin
+ #define CPLAY_LIS3DH_CS        -1 ///< LIS3DH chip select pin
+ #define CPLAY_LIS3DH_INTERRUPT 27 ///< LIS3DH interrupt pin
+ #define CPLAY_LIS3DH_ADDRESS   0x19 ///< LIS3DH I2C address
 #else // Circuit Playground Express
  #define CPLAY_LEFTBUTTON        4  ///< left button pin
  #define CPLAY_RIGHTBUTTON       5 ///< right button pin
@@ -87,14 +100,14 @@
 /**************************************************************************/
 class Adafruit_CircuitPlayground {
  public:
-  boolean begin(uint8_t brightness=20);
+  bool begin(uint8_t brightness=20);
 
   Adafruit_CPlay_NeoPixel strip; ///< the neopixel strip object
   Adafruit_CPlay_LIS3DH lis; ///< the accelerometer object
   Adafruit_CPlay_Mic mic; ///< the microphone object
   Adafruit_CPlay_Speaker speaker; ///< the speaker object
 
-#ifdef __AVR__ // Circuit Playground 'classic'
+#if defined (__AVR__) || defined(ARDUINO_CIRCUITPLAY_NRF52840) // Circuit Playground 'classic' or bluefruit
   CPlay_CapacitiveSensor cap[8]; ///< the array of capacitive touch sensors
 #else
   Adafruit_CPlay_FreeTouch     cap[7]; ///< the array of capacitive touch sensors
@@ -103,11 +116,11 @@ class Adafruit_CircuitPlayground {
   IRsend                 irSend; ///< the IR send object
 #endif
 
-  boolean slideSwitch(void);
-  void redLED(boolean v);
-  void playTone(uint16_t freq, uint16_t time, boolean wait=true);
-  boolean leftButton(void);
-  boolean rightButton(void);
+  bool slideSwitch(void);
+  void redLED(bool v);
+  void playTone(uint16_t freq, uint16_t time, bool wait=true);
+  bool leftButton(void);
+  bool rightButton(void);
   uint16_t lightSensor(void);
   int16_t soundSensor(void);
   float temperature(void);
@@ -218,7 +231,7 @@ class Adafruit_CircuitPlayground {
     return ((uint32_t)red << 16) | ((uint32_t)green << 8) | blue;
   }
 
-  boolean isExpress(void);
+  bool isExpress(void);
 
  private:
 

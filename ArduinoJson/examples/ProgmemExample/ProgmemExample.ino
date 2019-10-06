@@ -1,24 +1,25 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2018
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
 //
 // This example shows the different ways you can use Flash strings with
 // ArduinoJson.
 //
 // Use Flash strings sparingly, because ArduinoJson duplicates them in the
-// JsonBuffer. Prefer plain old char*, as they are more efficient in term of
+// JsonDocument. Prefer plain old char*, as they are more efficient in term of
 // code size, speed, and memory usage.
+//
+// https://arduinojson.org/v6/example/progmem/
 
 #include <ArduinoJson.h>
 
 void setup() {
 #ifdef PROGMEM  // <- check that Flash strings are supported
 
-  DynamicJsonDocument doc;
+  DynamicJsonDocument doc(1024);
 
   // You can use a Flash String as your JSON input.
-  // WARNING: the content of the Flash String will be duplicated in the
-  // JsonBuffer.
+  // WARNING: the strings in the input will be duplicated in the JsonDocument.
   deserializeJson(doc, F("{\"sensor\":\"gps\",\"time\":1351824120,"
                          "\"data\":[48.756080,2.302038]}"));
   JsonObject obj = doc.as<JsonObject>();
@@ -29,12 +30,12 @@ void setup() {
 
   // You can use a Flash String to set an element of a JsonObject
   // WARNING: the content of the Flash String will be duplicated in the
-  // JsonBuffer.
+  // JsonDocument.
   obj[F("time")] = time;
 
   // You can set a Flash String to a JsonObject or JsonArray:
   // WARNING: the content of the Flash String will be duplicated in the
-  // JsonBuffer.
+  // JsonDocument.
   obj["sensor"] = F("gps");
 
   // It works with serialized() too:
@@ -57,4 +58,15 @@ void loop() {
   // not used in this example
 }
 
-// Visit https://arduinojson.org/v6/example/progmem/ for more.
+// See also
+// --------
+//
+// https://arduinojson.org/ contains the documentation for all the functions
+// used above. It also includes an FAQ that will help you solve any memory
+// problem.
+//
+// The book "Mastering ArduinoJson" contains a quick C++ course that explains
+// how your microcontroller stores strings in memory. It also tells why you
+// should not abuse Flash strings with ArduinoJson.
+// Learn more at https://arduinojson.org/book/
+// Use the coupon code TWENTY for a 20% discount ❤❤❤❤❤

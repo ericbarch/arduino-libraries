@@ -1,11 +1,11 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2018
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
 
 #pragma once
 
-#include "../Memory/MemoryPool.hpp"
-#include "../Memory/StringBuilder.hpp"
+#include <ArduinoJson/Memory/MemoryPool.hpp>
+#include <ArduinoJson/Memory/StringBuilder.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
@@ -13,13 +13,13 @@ class StringCopier {
  public:
   typedef ARDUINOJSON_NAMESPACE::StringBuilder StringBuilder;
 
-  StringCopier(MemoryPool* memoryPool) : _memoryPool(memoryPool) {}
+  StringCopier(MemoryPool* pool) : _pool(pool) {}
 
   StringBuilder startString() {
-    return StringBuilder(_memoryPool);
+    return StringBuilder(_pool);
   }
 
  private:
-  MemoryPool* _memoryPool;
+  MemoryPool* _pool;
 };
 }  // namespace ARDUINOJSON_NAMESPACE

@@ -1,10 +1,10 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2018
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
 
 #pragma once
 
-#include "../../Configuration.hpp"
+#include <ArduinoJson/Configuration.hpp>
 #include "is_same.hpp"
 
 namespace ARDUINOJSON_NAMESPACE {

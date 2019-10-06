@@ -1,91 +1,100 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2018
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
 
 #pragma once
 
-#include "../Serialization/measure.hpp"
-#include "../Serialization/serialize.hpp"
-#include "../Visitable.hpp"
-#include "JsonWriter.hpp"
+#include <ArduinoJson/Json/TextFormatter.hpp>
+#include <ArduinoJson/Misc/Visitable.hpp>
+#include <ArduinoJson/Serialization/measure.hpp>
+#include <ArduinoJson/Serialization/serialize.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
 template <typename TWriter>
 class JsonSerializer {
  public:
-  JsonSerializer(TWriter &writer) : _writer(writer) {}
+  JsonSerializer(TWriter &writer) : _formatter(writer) {}
 
-  void visitFloat(JsonFloat value) {
-    _writer.writeFloat(value);
-  }
+  FORCE_INLINE void visitArray(const CollectionData &array) {
+    write('[');
 
-  void visitArray(JsonArrayConst array) {
-    _writer.beginArray();
+    VariantSlot *slot = array.head();
 
-    JsonArrayConst::iterator it = array.begin();
-    while (it != array.end()) {
-      it->accept(*this);
+    while (slot != 0) {
+      slot->data()->accept(*this);
 
-      ++it;
-      if (it == array.end()) break;
+      slot = slot->next();
+      if (slot == 0) break;
 
-      _writer.writeComma();
+      write(',');
     }
 
-    _writer.endArray();
+    write(']');
   }
 
-  void visitObject(JsonObjectConst object) {
-    _writer.beginObject();
+  void visitObject(const CollectionData &object) {
+    write('{');
 
-    JsonObjectConst::iterator it = object.begin();
-    while (it != object.end()) {
-      _writer.writeString(it->key());
-      _writer.writeColon();
-      it->value().accept(*this);
+    VariantSlot *slot = object.head();
 
-      ++it;
-      if (it == object.end()) break;
+    while (slot != 0) {
+      _formatter.writeString(slot->key());
+      write(':');
+      slot->data()->accept(*this);
 
-      _writer.writeComma();
+      slot = slot->next();
+      if (slot == 0) break;
+
+      write(',');
     }
 
-    _writer.endObject();
+    write('}');
+  }
+
+  void visitFloat(Float value) {
+    _formatter.writeFloat(value);
   }
 
   void visitString(const char *value) {
-    _writer.writeString(value);
+    _formatter.writeString(value);
   }
 
   void visitRawJson(const char *data, size_t n) {
-    // TODO
-    for (size_t i = 0; i < n; i++) _writer.writeRaw(data[i]);
+    _formatter.writeRaw(data, n);
   }
 
-  void visitNegativeInteger(JsonUInt value) {
-    _writer.writeRaw('-');
-    _writer.writeInteger(value);
+  void visitNegativeInteger(UInt value) {
+    _formatter.writeNegativeInteger(value);
   }
 
-  void visitPositiveInteger(JsonUInt value) {
-    _writer.writeInteger(value);
+  void visitPositiveInteger(UInt value) {
+    _formatter.writePositiveInteger(value);
   }
 
   void visitBoolean(bool value) {
-    _writer.writeBoolean(value);
+    _formatter.writeBoolean(value);
   }
 
   void visitNull() {
-    _writer.writeRaw("null");
+    _formatter.writeRaw("null");
   }
 
   size_t bytesWritten() const {
-    return _writer.bytesWritten();
+    return _formatter.bytesWritten();
+  }
+
+ protected:
+  void write(char c) {
+    _formatter.writeRaw(c);
+  }
+
+  void write(const char *s) {
+    _formatter.writeRaw(s);
   }
 
  private:
-  JsonWriter<TWriter> _writer;
+  TextFormatter<TWriter> _formatter;
 };
 
 template <typename TSource, typename TDestination>

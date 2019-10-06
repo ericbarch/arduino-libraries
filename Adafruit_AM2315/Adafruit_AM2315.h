@@ -24,16 +24,19 @@
 #define AM2315_I2CADDR       0x5C
 #define AM2315_READREG       0x03
 
+/*! The object for interfacing with the AM2315 sensor */
 class Adafruit_AM2315 {
  public:
-  Adafruit_AM2315();
+  Adafruit_AM2315(TwoWire *theI2C=&Wire);
   boolean begin(void);
   float readTemperature(void);
   float readHumidity(void);
-  bool readTemperatureAndHumidity(float&, float&);
+  bool readTemperatureAndHumidity(float*, float*);
   
  private:
+  TwoWire *_i2c;
   boolean readData(void);
   float humidity, temp;
+  uint32_t lastreading;
 };
 

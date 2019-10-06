@@ -1,41 +1,38 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2018
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
 
 #pragma once
 
 namespace ARDUINOJSON_NAMESPACE {
 
-template <typename TChar>
 class StringMover {
  public:
   class StringBuilder {
    public:
-    typedef ZeroTerminatedRamStringConst StringType;
-
-    StringBuilder(TChar** ptr) : _writePtr(ptr), _startPtr(*ptr) {}
+    StringBuilder(char** ptr) : _writePtr(ptr), _startPtr(*ptr) {}
 
     void append(char c) {
-      *(*_writePtr)++ = TChar(c);
+      *(*_writePtr)++ = char(c);
     }
 
-    StringType complete() const {
+    char* complete() const {
       *(*_writePtr)++ = 0;
-      return reinterpret_cast<const char*>(_startPtr);
+      return _startPtr;
     }
 
    private:
-    TChar** _writePtr;
-    TChar* _startPtr;
+    char** _writePtr;
+    char* _startPtr;
   };
 
-  StringMover(TChar* ptr) : _ptr(ptr) {}
+  StringMover(char* ptr) : _ptr(ptr) {}
 
   StringBuilder startString() {
     return StringBuilder(&_ptr);
   }
 
  private:
-  TChar* _ptr;
+  char* _ptr;
 };
 }  // namespace ARDUINOJSON_NAMESPACE

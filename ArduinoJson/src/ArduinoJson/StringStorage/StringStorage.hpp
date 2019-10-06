@@ -1,11 +1,11 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2018
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
 
 #pragma once
 
-#include "./StringCopier.hpp"
-#include "./StringMover.hpp"
+#include <ArduinoJson/StringStorage/StringCopier.hpp>
+#include <ArduinoJson/StringStorage/StringMover.hpp>
 
 namespace ARDUINOJSON_NAMESPACE {
 
@@ -21,10 +21,10 @@ struct StringStorage {
 template <typename TChar>
 struct StringStorage<TChar*,
                      typename enable_if<!is_const<TChar>::value>::type> {
-  typedef StringMover<TChar> type;
+  typedef StringMover type;
 
   static type create(MemoryPool&, TChar* input) {
-    return type(input);
+    return type(reinterpret_cast<char*>(input));
   }
 };
 

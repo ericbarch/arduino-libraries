@@ -33,7 +33,9 @@
 /* Set the delay between fresh samples */
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 
-Adafruit_BNO055 bno = Adafruit_BNO055(55);
+// Check I2C device address and correct line below (by default address is 0x29 or 0x28)
+//                                   id, address
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
 
 /**************************************************************************/
 /*
@@ -204,11 +206,12 @@ void setup(void)
     /* Optional: Display current status */
     displaySensorStatus();
 
-   //Crystal must be configured AFTER loading calibration data into BNO055.
+   /* Crystal must be configured AFTER loading calibration data into BNO055. */
     bno.setExtCrystalUse(true);
 
     sensors_event_t event;
     bno.getEvent(&event);
+    /* always recal the mag as It goes out of calibration very often */
     if (foundCalib){
         Serial.println("Move sensor slightly to calibrate magnetometers");
         while (!bno.isFullyCalibrated())
