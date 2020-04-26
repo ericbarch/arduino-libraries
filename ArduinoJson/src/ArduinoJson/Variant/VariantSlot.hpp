@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #pragma once
@@ -13,8 +13,6 @@
 namespace ARDUINOJSON_NAMESPACE {
 
 typedef conditional<sizeof(void*) <= 2, int8_t, int16_t>::type VariantSlotDiff;
-
-class VairantData;
 
 class VariantSlot {
   // CAUTION: same layout as VariantData
@@ -51,7 +49,8 @@ class VariantSlot {
   VariantSlot* next(size_t distance) {
     VariantSlot* slot = this;
     while (distance--) {
-      if (!slot->_next) return 0;
+      if (!slot->_next)
+        return 0;
       slot += slot->_next;
     }
     return slot;
@@ -92,6 +91,15 @@ class VariantSlot {
     _next = 0;
     _flags = 0;
     _key = 0;
+  }
+
+  void movePointers(ptrdiff_t stringDistance, ptrdiff_t variantDistance) {
+    if (_flags & KEY_IS_OWNED)
+      _key += stringDistance;
+    if (_flags & VALUE_IS_OWNED)
+      _content.asString += stringDistance;
+    if (_flags & COLLECTION_MASK)
+      _content.asCollection.movePointers(stringDistance, variantDistance);
   }
 };
 

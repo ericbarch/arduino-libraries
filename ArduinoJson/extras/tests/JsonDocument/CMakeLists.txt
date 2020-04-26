@@ -1,5 +1,5 @@
 # ArduinoJson - arduinojson.org
-# Copyright Benoit Blanchon 2014-2019
+# Copyright Benoit Blanchon 2014-2020
 # MIT License
 
 add_executable(JsonDocumentTests
@@ -12,10 +12,15 @@ add_executable(JsonDocumentTests
 	isNull.cpp
 	nesting.cpp
 	remove.cpp
+	shrinkToFit.cpp
 	size.cpp
 	StaticJsonDocument.cpp
 	subscript.cpp
 )
 
-target_link_libraries(JsonDocumentTests catch)
+target_link_libraries(JsonDocumentTests
+	ArduinoJson
+	catch
+)
+
 add_test(JsonDocument JsonDocumentTests)

@@ -1,6 +1,106 @@
 ArduinoJson: change log
 =======================
 
+v6.15.1 (2020-04-08)
+-------
+
+* Fixed "maybe-uninitialized" warning (issue #1217)
+* Fixed "statement is unreachable" warning on IAR (issue #1233)
+* Fixed "pointless integer comparison" warning on IAR (issue #1233)
+* Added CMake "install" target (issue #1209)
+* Disabled alignment on AVR (issue #1231)
+
+v6.15.0 (2020-03-22)
+-------
+
+* Added `DeserializationOption::Filter` (issue #959)
+* Added example `JsonFilterExample.ino`
+* Changed the array subscript operator to automatically add missing elements
+* Fixed "deprecated-copy" warning on GCC 9 (fixes #1184)
+* Fixed `MemberProxy::set(char[])` not duplicating the string (issue #1191)
+* Fixed enums serialized as booleans (issue #1197)
+* Fixed incorrect string comparison on some platforms (issue #1198)
+* Added move-constructor and move-assignment to `BasicJsonDocument`
+* Added `BasicJsonDocument::garbageCollect()` (issue #1195)
+* Added `StaticJsonDocument::garbageCollect()`
+* Changed copy-constructor of `BasicJsonDocument` to preserve the capacity of the source.
+* Removed copy-constructor of `JsonDocument` (issue #1189)
+
+> ### BREAKING CHANGES
+> 
+> #### Copy-constructor of `BasicJsonDocument`
+>
+> In previous versions, the copy constructor of `BasicJsonDocument` looked at the source's `memoryUsage()` to choose its capacity.
+> Now, the copy constructor of `BasicJsonDocument` uses the same capacity as the source.
+>
+> Example:
+>
+> ```c++
+> DynamicJsonDocument doc1(64);
+> doc1.set(String("example"));
+>
+> DynamicJsonDocument doc2 = doc1;
+> Serial.print(doc2.capacity());  // 8 with ArduinoJson 6.14
+>                                 // 64 with ArduinoJson 6.15
+> ```
+>
+> I made this change to get consistent results between copy-constructor and move-constructor, and whether RVO applies or not.
+>
+> If you use the copy-constructor to optimize your documents, you can use `garbageCollect()` or `shrinkToFit()` instead.
+>
+> #### Copy-constructor of `JsonDocument`
+>
+> In previous versions, it was possible to create a function that take a `JsonDocument` by value.
+>
+> ```c++
+> void myFunction(JsonDocument doc) {}
+> ```
+>
+> This function gives the wrong clues because it doesn't receive a copy of the `JsonDocument`, only a sliced version.
+> It worked because the copy constructor copied the internal pointers, but it was an accident.
+>
+> From now, if you need to pass a `JsonDocument` to a function, you must use a reference:
+>
+> ```c++
+> void myFunction(JsonDocument& doc) {}
+> ```
+
+v6.14.1 (2020-01-27)
+-------
+
+* Fixed regression in UTF16 decoding (issue #1173)
+* Fixed `containsKey()` on `JsonVariantConst`
+* Added `getElement()` and `getMember()` to `JsonVariantConst`
+
+v6.14.0 (2020-01-16)
+-------
+
+* Added `BasicJsonDocument::shrinkToFit()`
+* Added support of `uint8_t` for `serializeJson()`, `serializeJsonPretty()`, and `serializeMsgPack()` (issue #1142)
+* Added `ARDUINOJSON_ENABLE_COMMENTS` to enable support for comments (defaults to 0)
+* Auto enable support for `std::string` and `std::stream` on modern compilers (issue #1156)
+  (No need to define `ARDUINOJSON_ENABLE_STD_STRING` and `ARDUINOJSON_ENABLE_STD_STREAM` anymore)
+* Improved decoding of UTF-16 surrogate pairs (PR #1157 by @kaysievers)
+  (ArduinoJson now produces standard UTF-8 instead of CESU-8)
+* Added `measureJson`, `measureJsonPretty`, and `measureMsgPack` to `keywords.txt`
+  (This file is used for syntax highlighting in the Arduino IDE) 
+* Fixed `variant.is<nullptr_t>()`
+* Fixed value returned by `serializeJson()`, `serializeJsonPretty()`, and `serializeMsgPack()` when writing to a `String`
+* Improved speed of `serializeJson()`, `serializeJsonPretty()`, and `serializeMsgPack()` when writing to a `String`
+
+> ### BREAKING CHANGES
+> 
+> #### Comments
+> 
+> Support for comments in input is now optional and disabled by default.
+>
+> If you need support for comments, you must defined `ARDUINOJSON_ENABLE_COMMENTS` to `1`; otherwise, you'll receive `InvalidInput` errors.
+>
+> ```c++
+> #define ARDUINOJSON_ENABLE_COMMENTS 1
+> #include <ArduinoJson.h>
+> ```
+
 v6.13.0 (2019-11-01)
 -------
 

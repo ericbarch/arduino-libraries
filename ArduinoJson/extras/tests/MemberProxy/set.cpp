@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #include <ArduinoJson.h>
@@ -19,6 +19,14 @@ TEST_CASE("MemberProxy::set()") {
 
   SECTION("set(const char*)") {
     mp.set("world");
+
+    REQUIRE(doc.as<std::string>() == "{\"hello\":\"world\"}");
+  }
+
+  SECTION("set(char[])") {  // issue #1191
+    char s[] = "world";
+    mp.set(s);
+    strcpy(s, "!!!!!");
 
     REQUIRE(doc.as<std::string>() == "{\"hello\":\"world\"}");
   }

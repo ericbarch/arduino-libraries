@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #pragma once
@@ -17,6 +17,10 @@ class StringCopier {
 
   StringBuilder startString() {
     return StringBuilder(_pool);
+  }
+
+  void reclaim(const char* s) {
+    _pool->reclaimLastString(s);
   }
 
  private:

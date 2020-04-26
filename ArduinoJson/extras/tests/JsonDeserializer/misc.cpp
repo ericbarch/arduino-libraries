@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #include <ArduinoJson.h>
@@ -61,35 +61,9 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     }
   }
 
-  SECTION("Comments") {
-    SECTION("Just a trailing comment") {
-      DeserializationError err = deserializeJson(doc, "// comment");
-
-      REQUIRE(err == DeserializationError::IncompleteInput);
-    }
-
-    SECTION("Just a block comment") {
-      DeserializationError err = deserializeJson(doc, "/*comment*/");
-
-      REQUIRE(err == DeserializationError::IncompleteInput);
-    }
-
-    SECTION("Just a slash") {
-      DeserializationError err = deserializeJson(doc, "/");
-
-      REQUIRE(err == DeserializationError::InvalidInput);
-    }
-  }
-
   SECTION("Premature null-terminator") {
     SECTION("In escape sequence") {
       DeserializationError err = deserializeJson(doc, "\"\\");
-
-      REQUIRE(err == DeserializationError::IncompleteInput);
-    }
-
-    SECTION("In block comment") {
-      DeserializationError err = deserializeJson(doc, "/* comment");
 
       REQUIRE(err == DeserializationError::IncompleteInput);
     }
@@ -110,12 +84,6 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
   SECTION("Premature end of input") {
     SECTION("In escape sequence") {
       DeserializationError err = deserializeJson(doc, "\"\\n\"", 2);
-
-      REQUIRE(err == DeserializationError::IncompleteInput);
-    }
-
-    SECTION("In block comment") {
-      DeserializationError err = deserializeJson(doc, "/* comment */", 10);
 
       REQUIRE(err == DeserializationError::IncompleteInput);
     }

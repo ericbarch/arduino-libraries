@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #include <ArduinoJson.h>
@@ -9,7 +9,6 @@ using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("ElementProxy::set()") {
   DynamicJsonDocument doc(4096);
-  doc.addElement();
   ElementProxy<JsonDocument&> ep = doc[0];
 
   SECTION("set(int)") {
@@ -20,6 +19,14 @@ TEST_CASE("ElementProxy::set()") {
 
   SECTION("set(const char*)") {
     ep.set("world");
+
+    REQUIRE(doc.as<std::string>() == "[\"world\"]");
+  }
+
+  SECTION("set(char[])") {
+    char s[] = "world";
+    ep.set(s);
+    strcpy(s, "!!!!!");
 
     REQUIRE(doc.as<std::string>() == "[\"world\"]");
   }

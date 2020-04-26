@@ -1,5 +1,5 @@
 # ArduinoJson - arduinojson.org
-# Copyright Benoit Blanchon 2014-2019
+# Copyright Benoit Blanchon 2014-2020
 # MIT License
 
 add_executable(MemberProxyTests
@@ -13,5 +13,9 @@ add_executable(MemberProxyTests
 	subscript.cpp
 )
 
-target_link_libraries(MemberProxyTests catch)
+target_link_libraries(MemberProxyTests
+	ArduinoJson
+	catch
+)
+
 add_test(MemberProxy MemberProxyTests)

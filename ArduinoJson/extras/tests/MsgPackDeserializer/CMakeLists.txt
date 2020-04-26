@@ -1,5 +1,5 @@
 # ArduinoJson - arduinojson.org
-# Copyright Benoit Blanchon 2014-2019
+# Copyright Benoit Blanchon 2014-2020
 # MIT License
 
 add_executable(MsgPackDeserializerTests
@@ -14,5 +14,9 @@ add_executable(MsgPackDeserializerTests
 	notSupported.cpp
 )
 
-target_link_libraries(MsgPackDeserializerTests catch)
+target_link_libraries(MsgPackDeserializerTests
+	ArduinoJson
+	catch
+)
+
 add_test(MsgPackDeserializer MsgPackDeserializerTests)

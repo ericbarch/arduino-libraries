@@ -1,11 +1,9 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
-
-static const char* null = 0;
 
 template <typename T>
 void checkEquals(T a, T b) {
@@ -70,6 +68,8 @@ void checkComparisons(T low, T mid, T high) {
 }
 
 TEST_CASE("JsonVariant comparisons") {
+  static const char* null = 0;
+
   SECTION("Double") {
     checkComparisons<double>(123.44, 123.45, 123.46);
   }

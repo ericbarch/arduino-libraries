@@ -1,10 +1,11 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/MsgPack/endianess.hpp>
+#include <ArduinoJson/Polyfills/assert.hpp>
 #include <ArduinoJson/Polyfills/type_traits.hpp>
 #include <ArduinoJson/Serialization/measure.hpp>
 #include <ArduinoJson/Serialization/serialize.hpp>
@@ -70,7 +71,7 @@ class MsgPackSerializer {
   }
 
   void visitString(const char* value) {
-    if (!value) return writeByte(0xC0);  // nil
+    ARDUINOJSON_ASSERT(value != NULL);
 
     size_t n = strlen(value);
 
@@ -124,7 +125,13 @@ class MsgPackSerializer {
     } else if (value <= 0xFFFF) {
       writeByte(0xCD);
       writeInteger(uint16_t(value));
-    } else if (value <= 0xFFFFFFFF) {
+    }
+#if ARDUINOJSON_USE_LONG_LONG
+    else if (value <= 0xFFFFFFFF)
+#else
+    else
+#endif
+    {
       writeByte(0xCE);
       writeInteger(uint32_t(value));
     }
@@ -172,8 +179,8 @@ inline size_t serializeMsgPack(const TSource& source, TDestination& output) {
   return serialize<MsgPackSerializer>(source, output);
 }
 
-template <typename TSource, typename TDestination>
-inline size_t serializeMsgPack(const TSource& source, TDestination* output,
+template <typename TSource>
+inline size_t serializeMsgPack(const TSource& source, void* output,
                                size_t size) {
   return serialize<MsgPackSerializer>(source, output, size);
 }

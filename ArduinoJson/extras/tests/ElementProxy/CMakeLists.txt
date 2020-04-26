@@ -1,5 +1,5 @@
 # ArduinoJson - arduinojson.org
-# Copyright Benoit Blanchon 2014-2019
+# Copyright Benoit Blanchon 2014-2020
 # MIT License
 
 add_executable(ElementProxyTests
@@ -11,5 +11,9 @@ add_executable(ElementProxyTests
 	size.cpp
 )
 
-target_link_libraries(ElementProxyTests catch)
+target_link_libraries(ElementProxyTests
+	ArduinoJson
+	catch
+)
+
 add_test(ElementProxy ElementProxyTests)

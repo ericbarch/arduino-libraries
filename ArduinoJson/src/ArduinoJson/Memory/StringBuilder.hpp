@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #pragma once
@@ -23,7 +23,8 @@ class StringBuilder {
   }
 
   void append(char c) {
-    if (!_slot.value) return;
+    if (!_slot.value)
+      return;
 
     if (_size >= _slot.size) {
       _slot.value = 0;

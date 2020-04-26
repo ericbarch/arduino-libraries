@@ -1,5 +1,5 @@
 // ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2020
 // MIT License
 
 #pragma once
@@ -20,7 +20,8 @@ class PrettyJsonSerializer : public JsonSerializer<TWriter> {
 
   void visitArray(const CollectionData &array) {
     VariantSlot *slot = array.head();
-    if (!slot) return base::write("[]");
+    if (!slot)
+      return base::write("[]");
 
     base::write("[\r\n");
     _nesting++;
@@ -38,7 +39,8 @@ class PrettyJsonSerializer : public JsonSerializer<TWriter> {
 
   void visitObject(const CollectionData &object) {
     VariantSlot *slot = object.head();
-    if (!slot) return base::write("{}");
+    if (!slot)
+      return base::write("{}");
 
     base::write("{\r\n");
     _nesting++;
@@ -70,7 +72,7 @@ size_t serializeJsonPretty(const TSource &source, TDestination &destination) {
 }
 
 template <typename TSource>
-size_t serializeJsonPretty(const TSource &source, char *buffer,
+size_t serializeJsonPretty(const TSource &source, void *buffer,
                            size_t bufferSize) {
   return serialize<PrettyJsonSerializer>(source, buffer, bufferSize);
 }
